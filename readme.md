@@ -1,4 +1,4 @@
-# Memgraph Telegram bot
+#  Hermes
 
 This is a bot for interacting with a memgraph database in Telegram.
 

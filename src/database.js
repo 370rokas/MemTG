@@ -1,25 +1,25 @@
-const db = require("db")
+const db = require("./db.js");
 
-function addUserById(id, perms) {
+function addUserById(id, perms, callback) {
     db.run(`INSERT INTO users (id, perms) VALUES (?, ?)`, [id, perms], (err) => {
         if (err) {
             console.error("Error adding user: ", err.message);
-            return err.message;
+            callback(err.message, null);
         } else {
             console.log(`Added user ${id}, with perms ${perms}`);
-            return true;
+            callback(null, true);
         }
     });
 }
 
-function removeUserBydId(id) {
+function removeUserById(id, callback) {
     db.run(`DELETE FROM users WHERE id = ?`, [id], (err) => {
         if (err) {
             console.error("Error removing user: ", err.message);
-            return err.message;
+            callback(err.message, null);
         } else {
             console.log(`Removed user ${id}`);
-            return true;
+            callback(null, true);
         }
     });
 }
@@ -28,34 +28,46 @@ function getUserPerms(id, callback) {
     db.get(`SELECT perms FROM users WHERE id = ?`, [id], (err, row) => {
         if (err) {
             console.error('Error getting user permissions:', err.message);
-            callback(null);
+            callback(err.message, null);
         } else {
-            callback(row ? row.perms : null);
+            callback(null, row ? row.perms : null);
         }
     });
 }
 
-function changeUserPerms(id, newPerms) {
+function changeUserPerms(id, newPerms, callback) {
     db.run(`UPDATE users SET perms = ? WHERE id = ?`, [newPerms, id], (err) => {
         if (err) {
             console.error('Error changing user permissions:', err.message);
-            return err.message;
+            callback(err.message, null);
         } else {
             console.log('User permissions changed successfully!');
-            return true;
+            callback(null, true);
         }
     });
 }
 
-function getUserPerms(id, callback) {
-    db.get(`SELECT perms FROM users WHERE id = ?`, [id], (err, row) => {
+function isTableEmpty(callback) {
+    db.get(`SELECT COUNT(*) as count FROM users`, (err, row) => {
         if (err) {
-            console.error('Error getting user permissions:', err.message);
-            callback(null);
+            console.error('Error checking if table is empty:', err.message);
+            callback(err, null);
         } else {
-            callback(row ? row.perms : null);
+            const rowCount = row ? row.count : 0;
+            callback(null, rowCount === 0);
         }
     });
 }
 
-db.close();
+function closeDatabase() {
+    db.close();
+}
+
+module.exports = {
+    addUserById,
+    removeUserById,
+    getUserPerms,
+    isTableEmpty,
+    changeUserPerms,
+    closeDatabase
+};

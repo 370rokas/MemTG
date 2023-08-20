@@ -1,3 +1,4 @@
 node_modules
 
 .env
+user_database.db
